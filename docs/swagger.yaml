@@ -1,0 +1,350 @@
+basePath: /
+definitions:
+  http.GeneratePlanRequest:
+    properties:
+      available_days:
+        type: integer
+      target_weight:
+        type: integer
+    type: object
+  http.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  http.PlanResponse:
+    properties:
+      created_at:
+        type: integer
+      id:
+        type: integer
+      plan_json:
+        type: string
+    type: object
+  http.RecipeRequest:
+    properties:
+      ingredients:
+        type: string
+    type: object
+  http.RecipeResponse:
+    properties:
+      ai_response:
+        type: string
+      created_at:
+        type: integer
+      id:
+        type: integer
+      ingredients:
+        type: string
+    type: object
+  http.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  http.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  http.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@gymapp.com
+  description: A comprehensive API for managing gym training plans and recipes with
+    AI integration
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: GymApp API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and get tokens
+      operationId: auth-login
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/http.TokenResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Get a new access token using refresh token
+      operationId: auth-refresh
+      parameters:
+      - description: Refresh request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New access token
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid refresh token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh access token
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      operationId: auth-register
+      parameters:
+      - description: Register request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/http.TokenResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check if API is running
+      operationId: health
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: API is healthy
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+  /recipes/from-image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Generate a recipe by uploading a food image
+      operationId: recipe-generate-image
+      parameters:
+      - description: Image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Recipe generated
+          schema:
+            $ref: '#/definitions/http.RecipeResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Generate recipe from image
+  /recipes/from-text:
+    post:
+      consumes:
+      - application/json
+      description: Generate a recipe using AI based on ingredient list
+      operationId: recipe-generate-text
+      parameters:
+      - description: Ingredients for recipe
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.RecipeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Recipe generated
+          schema:
+            $ref: '#/definitions/http.RecipeResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Generate recipe from ingredients text
+  /recipes/history:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve user's recipe generation history
+      operationId: recipe-history
+      parameters:
+      - default: 20
+        description: Number of records
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recipe history
+          schema:
+            items:
+              $ref: '#/definitions/http.RecipeResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Get recipe history
+  /training/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generate a personalized training plan using AI
+      operationId: training-generate
+      parameters:
+      - description: Training plan parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.GeneratePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Training plan generated
+          schema:
+            $ref: '#/definitions/http.PlanResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Generate training plan
+  /training/latest:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the user's latest generated training plan
+      operationId: training-latest
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Latest training plan
+          schema:
+            $ref: '#/definitions/http.PlanResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: No training plan found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Get latest training plan
+schemes:
+- http
+- https
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
