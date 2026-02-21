@@ -52,7 +52,6 @@ GymApp/
 │   └── logger.go               # Logging utilities
 ├── Dockerfile
 ├── docker-compose.yml
-├── Makefile
 ├── go.mod
 └── .env.example
 ```
